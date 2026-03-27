@@ -14,6 +14,7 @@ from PIL import Image
 
 IMG_HEIGHT = 180
 IMG_WIDTH = 180
+DEFAULT_CLASS_NAMES = ["daisy", "dandelion", "roses", "sunflowers", "tulips"]
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "artefactos_parcial1" / "flower_classifier.keras"
 DEFAULT_CLASSES_PATH = Path(__file__).resolve().parent / "artefactos_parcial1" / "class_names.json"
 
@@ -25,11 +26,16 @@ def load_model(model_path: str) -> tf.keras.Model:
 
 @st.cache_data
 def load_class_names(classes_path: str) -> list[str]:
-    with open(classes_path, "r", encoding="utf-8") as f:
-        class_names = json.load(f)
-    if not isinstance(class_names, list) or not class_names:
-        raise ValueError("class_names.json no contiene una lista valida de clases.")
-    return class_names
+    try:
+        with open(classes_path, "r", encoding="utf-8") as f:
+            class_names = json.load(f)
+        if isinstance(class_names, list) and class_names:
+            return class_names
+    except Exception:
+        pass
+
+    # Fallback cuando no hay JSON valido de clases.
+    return DEFAULT_CLASS_NAMES
 
 
 def load_image_from_url(url: str) -> Image.Image:
