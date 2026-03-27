@@ -38,12 +38,27 @@ def load_image_from_url(url: str) -> Image.Image:
     return Image.open(io.BytesIO(response.content)).convert("RGB")
 
 
-def preprocess_image(image: Image.Image) -> np.ndarray:
-    image = image.convert("RGB")
-    image = image.resize((IMG_WIDTH, IMG_HEIGHT))
-    arr = np.array(image, dtype=np.float32)
+def get_model_input_size(model: tf.keras.Model) -> tuple[int, int]:
+    shape = model.input_shape
+    if isinstance(shape, list):
+        shape = shape[0]
 
-    # Misma normalizacion usada en el notebook: [0, 255] -> [0, 1]
+    try:
+        height = int(shape[1])
+        width = int(shape[2])
+        if height > 0 and width > 0:
+            return height, width
+    except Exception:
+        pass
+
+    return IMG_HEIGHT, IMG_WIDTH
+
+
+def preprocess_image(image: Image.Image, height: int, width: int) -> np.ndarray:
+    image = image.convert("RGB")
+    image = image.resize((width, height))
+    arr = np.array(image, dtype=np.float32)
+    # Mantener la misma normalizacion usada en entrenamiento
     arr = arr / 255.0
     arr = np.expand_dims(arr, axis=0)
     return arr
@@ -67,6 +82,9 @@ def main() -> None:
     except Exception as exc:
         st.error(f"Error cargando modelo o clases: {exc}")
         st.stop()
+
+    model_img_height, model_img_width = get_model_input_size(model)
+    st.caption(f"Tamano de entrada esperado por el modelo: {model_img_height}x{model_img_width} px")
 
     st.subheader("Catalogo de clases")
     st.write(", ".join(class_names))
@@ -97,7 +115,7 @@ def main() -> None:
         st.subheader("Imagen de entrada")
         st.image(image, use_container_width=True)
 
-    input_tensor = preprocess_image(image)
+    input_tensor = preprocess_image(image, model_img_height, model_img_width)
     probs = model.predict(input_tensor, verbose=0)[0]
 
     if len(probs) != len(class_names):
