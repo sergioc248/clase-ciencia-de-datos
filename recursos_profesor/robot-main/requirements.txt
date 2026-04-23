@@ -1,0 +1,5 @@
+# Dependencias mínimas recomendadas para Python 3.10/3.11
+numpy>=1.23
+opencv-python>=4.6
+pygame>=2.1
+mediapipe>=0.10
