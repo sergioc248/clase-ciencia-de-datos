@@ -1,5 +1,5 @@
-streamlit
-requests
-Pillow
-matplotlib
-tensorflow
+streamlit>=1.44.1
+requests>=2.32.3
+Pillow>=11.2.1
+opencv-python>=4.13.0.92
+ultralytics>=8.4.41
